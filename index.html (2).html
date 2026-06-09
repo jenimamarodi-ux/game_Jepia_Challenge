@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano Virtual Realistis - Piano Master</title>
+    <style>
+        :root {
+            --bg-color: #0d0e15;
+            --panel-color: #1a1c29;
+            --wood-trim: #5c1d1d;
+            --wood-trim-light: #7c2d2d;
+            --accent-cyan: #00f2fe;
+            --accent-neon: #4facfe;
+            --text-main: #f1f3f9;
+            --active-glow: rgba(0, 242, 254, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+        }
+
+        /* Header & Dashboard */
+        header {
+            background: linear-gradient(180deg, #161925 0%, var(--panel-color) 100%);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--accent-neon), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: #8b92b6;
+        }
+
+        /* Main Dashboard & Controls */
+        .dashboard {
+            max-width: 1200px;
+            width: 100%;
+            margin: 15px auto;
+            padding: 0 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            z-index: 5;
+        }
+
+        .control-card {
+            background: var(--panel-color);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8b92b6;
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Buttons & Inputs */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            background: #25283c;
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #2f334d;
+            border-color: var(--accent-cyan);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            border-color: transparent;
+            box-shadow: 0 0 12px rgba(255, 75, 43, 0.4);
+        }
+
+        .btn-play.active-play {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border-color: transparent;
+            box-shadow: 0 0 12px rgba(56, 239, 125, 0.4);
+        }
+
+        /* Selector Styling */
+        select {
+            background: #25283c;
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        select:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        /* Range Sliders */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #25283c;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--accent-cyan);
+        }
+
+        /* Visualizer Area */
+        .visualizer-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100px;
+            background: rgba(26, 28, 41, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        /* Piano Body Wrapper */
+        .piano-outer-container {
+            width: 100%;
+            background: #111;
+            border-top: 4px solid var(--wood-trim-light);
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.8), 0 -5px 25px rgba(0,0,0,0.5);
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        /* Wood panel finish above keys */
+        .wood-panel {
+            height: 35px;
+            background: linear-gradient(to bottom, var(--wood-trim) 0%, #301010 100%);
+            border-bottom: 3px solid #1a0505;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.1);
+        }
+
+        .brand-logo {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: rgba(255, 183, 3, 0.4);
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+
+        .octave-shifter {
+            display: flex;
+            gap: 15px;
+            color: #888;
+            font-size: 0.75rem;
+            align-items: center;
+        }
+
+        .octave-shifter span {
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.2s;
+        }
+
+        .octave-shifter span:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* Scrollable keyboard container */
+        .keyboard-viewport {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-cyan) rgba(255,255,255,0.05);
+            padding-top: 5px;
+            touch-action: none; /* Prevents viewport jumping on touch drag */
+        }
+
+        .keyboard-viewport::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .keyboard-viewport::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .keyboard-viewport::-webkit-scrollbar-thumb {
+            background-color: var(--accent-cyan);
+            border-radius: 3px;
+        }
+
+        /* The Keyboard Grid/Flex */
+        .keyboard {
+            display: flex;
+            position: relative;
+            margin: 0 auto;
+            width: max-content;
+            padding: 0 10px;
+        }
+
+        /* Key Styles */
+        .key {
+            position: relative;
+            cursor: pointer;
+            transition: background 0.1s, transform 0.05s, box-shadow 0.1s;
+        }
+
+        .white-key {
+            width: 55px;
+            height: 240px;
+            background: linear-gradient(to bottom, #fdfdfd 0%, #e2e2e2 100%);
+            border: 1px solid #111;
+            border-radius: 0 0 6px 6px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 15px;
+            color: #333;
+            font-weight: 700;
+            font-size: 0.85rem;
+            box-shadow: inset 0px -5px 10px rgba(0,0,0,0.15), 0px 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .white-key:hover {
+            background: linear-gradient(to bottom, #ffffff 0%, #ebebeb 100%);
+        }
+
+        .white-key.active {
+            background: linear-gradient(to bottom, #e0e0e0 0%, var(--accent-cyan) 100%);
+            color: #000;
+            box-shadow: inset 0px -2px 5px rgba(0,0,0,0.2), 0 0 20px var(--active-glow);
+            transform: translateY(2px);
+        }
+
+        .black-key {
+            width: 32px;
+            height: 150px;
+            background: linear-gradient(to bottom, #2b2b2b 0%, #070707 100%);
+            border: 1px solid #000;
+            border-radius: 0 0 4px 4px;
+            z-index: 2;
+            margin-left: -16px;
+            margin-right: -16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            font-size: 0.75rem;
+            box-shadow: inset 0px -4px 8px rgba(255,255,255,0.1), 0px 5px 8px rgba(0,0,0,0.4);
+        }
+
+        .black-key:hover {
+            background: linear-gradient(to bottom, #3d3d3d 0%, #111111 100%);
+        }
+
+        .black-key.active {
+            background: linear-gradient(to bottom, #2c3e50 0%, #e74c3c 100%);
+            color: #fff;
+            box-shadow: inset 0px -2px 4px rgba(0,0,0,0.4), 0 0 15px rgba(231, 76, 60, 0.6);
+            transform: translateY(2px);
+        }
+
+        /* Label elements on keys */
+        .key-note {
+            margin-bottom: 4px;
+            pointer-events: none;
+            letter-spacing: -0.5px;
+        }
+
+        .key-binding {
+            font-size: 0.7rem;
+            opacity: 0.5;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 1px 5px;
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        .black-key .key-binding {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Key binding label visibility control */
+        .hide-bindings .key-binding {
+            display: none !important;
+        }
+
+        /* Helper Switch styling */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #25283c;
+            transition: .3s;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .switch-slider {
+            background-color: var(--accent-cyan);
+            border-color: transparent;
+        }
+
+        input:checked + .switch-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Mobile specific enhancements */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+            .white-key {
+                width: 48px;
+                height: 200px;
+            }
+            .black-key {
+                width: 28px;
+                height: 125px;
+                margin-left: -14px;
+                margin-right: -14px;
+            }
+            canvas {
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <h1>PIANO MASTER PRO</h1>
+        <p>Keyboard Virtual Interaktif & Simulator Realistis</p>
+    </header>
+
+    <!-- Dashboard Controls -->
+    <div class="dashboard">
+        <!-- Instrument Selector -->
+        <div class="control-card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: var(--accent-cyan)"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                PILIH INSTRUMEN
+            </div>
+            <select id="instrument-preset">
+                <option value="piano">Piano Klasik (Grand Piano)</option>
+                <option value="organ">Organ Elektrik (Drawbar)</option>
+                <option value="synth">Sintesis Modern (Analog Pad)</option>
+            </select>
+        </div>
+
+        <!-- Recording Controls -->
+        <div class="control-card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: #ff4b2b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                PEREKAM PERMAINAN
+            </div>
+            <div class="btn-group">
+                <button class="btn" id="record-btn">
+                    <span style="display:inline-block; width:10px; height:10px; background:#ff4b2b; border-radius:50%"></span>
+                    REKAM
+                </button>
+                <button class="btn btn-play" id="play-btn" disabled>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    PUTAR
+                </button>
+            </div>
+        </div>
+
+        <!-- Master Volume & Utilities -->
+        <div class="control-card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: var(--accent-cyan)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                PENGATURAN MASTER
+            </div>
+            <div class="slider-container">
+                <span style="font-size: 0.8rem; min-width: 45px; color:#8b92b6;">Vol:</span>
+                <input type="range" id="volume-control" min="0" max="1" step="0.05" value="0.7">
+            </div>
+        </div>
+
+        <!-- Helpers Toggle -->
+        <div class="control-card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: var(--accent-neon)"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+                PANDUAN VISUAL
+            </div>
+            <div class="switch-container">
+                <span style="font-size: 0.85rem; color:#f1f3f9;">Tampilkan Tombol Keyboard</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-guide" checked>
+                    <span class="switch-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waves Visualizer Area -->
+    <div class="visualizer-container">
+        <canvas id="wave-canvas"></canvas>
+    </div>
+
+    <!-- Realistic Piano Body & Keys -->
+    <div class="piano-outer-container">
+        <!-- Wooden brand panel strip above keys -->
+        <div class="wood-panel">
+            <div class="brand-logo">PIANO MASTER</div>
+            <div class="octave-shifter">
+                <span>Oktaf Dasar: C3 - B5</span>
+            </div>
+        </div>
+
+        <!-- Viewport holding keys -->
+        <div class="keyboard-viewport" id="viewport">
+            <div class="keyboard" id="piano-keyboard">
+                <!-- Keys will be dynamically rendered here via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI DATA NADA (3 Oktaf: C3 hingga B5) ---
+        // total 21 tuts putih, 15 tuts hitam
+        const NOTES = [
+            { note: "C3", freq: 130.81, type: "white", key: "Q" },
+            { note: "C#3", freq: 138.59, type: "black", key: "2" },
+            { note: "D3", freq: 146.83, type: "white", key: "W" },
+            { note: "D#3", freq: 154.60, type: "black", key: "3" },
+            { note: "E3", freq: 164.81, type: "white", key: "E" },
+            { note: "F3", freq: 174.61, type: "white", key: "R" },
+            { note: "F#3", freq: 185.00, type: "black", key: "5" },
+            { note: "G3", freq: 196.00, type: "white", key: "T" },
+            { note: "G#3", freq: 207.65, type: "black", key: "6" },
+            { note: "A3", freq: 220.00, type: "white", key: "Y" },
+            { note: "A#3", freq: 233.08, type: "black", key: "7" },
+            { note: "B3", freq: 246.94, type: "white", key: "U" },
+            
+            { note: "C4", freq: 261.63, type: "white", key: "A" },
+            { note: "C#4", freq: 277.18, type: "black", key: "W_caps" }, // Fallback mappings
+            { note: "D4", freq: 293.66, type: "white", key: "S" },
+            { note: "D#4", freq: 311.13, type: "black", key: "E_caps" },
+            { note: "E4", freq: 329.63, type: "white", key: "D" },
+            { note: "F4", freq: 349.23, type: "white", key: "F" },
+            { note: "F#4", freq: 369.99, type: "black", key: "T_caps" },
+            { note: "G4", freq: 392.00, type: "white", key: "G" },
+            { note: "G#4", freq: 415.30, type: "black", key: "Y_caps" },
+            { note: "A4", freq: 440.00, type: "white", key: "H" },
+            { note: "A#4", freq: 466.16, type: "black", key: "U_caps" },
+            { note: "B4", freq: 493.88, type: "white", key: "J" },
+
+            { note: "C5", freq: 523.25, type: "white", key: "K" },
+            { note: "C#5", freq: 554.37, type: "black", key: "O" },
+            { note: "D5", freq: 587.33, type: "white", key: "L" },
+            { note: "D#5", freq: 622.25, type: "black", key: "P" },
+            { note: "E5", freq: 659.25, type: "white", key: ";" },
+            { note: "F5", freq: 698.46, type: "white", key: "Z" },
+            { note: "F#5", freq: 739.99, type: "black", key: "S_shift" },
+            { note: "G5", freq: 783.99, type: "white", key: "X" },
+            { note: "G#5", freq: 830.61, type: "black", key: "D_shift" },
+            { note: "A5", freq: 880.00, type: "white", key: "C" },
+            { note: "A#5", freq: 932.33, type: "black", key: "F_shift" },
+            { note: "B5", freq: 987.77, type: "white", key: "V" }
+        ];
+
+        // Pemetaan keyboard komputer ke note index untuk navigasi presisi
+        const KEY_MAP = {
+            'q': 0, '2': 1, 'w': 2, '3': 3, 'e': 4, 'r': 5, '5': 6, 't': 7, '6': 8, 'y': 9, '7': 10, 'u': 11,
+            'a': 12, 's': 14, 'd': 16, 'f': 17, 'g': 19, 'h': 21, 'j': 23,
+            'k': 24, 'l': 26, ';': 28, 'z': 29, 'x': 31, 'c': 33, 'v': 35,
+            // Tombol hitam oktaf tengah yang dipetakan ke baris atas keyboard
+            'i': 13, 'o': 15, 'p': 18, '[': 20, ']': 22,
+            // Tambahan oktaf 5 hitam
+            '=': 25, '8': 27, '9': 30, '0': 32, '-': 34
+        };
+
+        // --- SISTEM SYNTHESIZER AUDIO WEB ---
+        let audioCtx = null;
+        let mainVolumeNode = null;
+        let analyserNode = null;
+        let activeNodes = {}; // Untuk menyimpan node osilator yang sedang aktif
+        let currentPreset = 'piano';
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            mainVolumeNode = audioCtx.createGain();
+            mainVolumeNode.gain.setValueAtTime(parseFloat(document.getElementById('volume-control').value), audioCtx.currentTime);
+            
+            analyserNode = audioCtx.createAnalyser();
+            analyserNode.fftSize = 256;
+
+            mainVolumeNode.connect(analyserNode);
+            analyserNode.connect(audioCtx.destination);
+        }
+
+        // ADSR & Pembuatan Suara Synth sesuai Preset
+        function playNoteAudio(noteName, frequency) {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            // Batasi tumpang tindih jika ubin tersebut sudah berbunyi
+            if (activeNodes[noteName]) {
+                stopNoteAudio(noteName);
+            }
+
+            const oscs = [];
+            const gains = [];
+
+            // Preset Instrumen
+            if (currentPreset === 'piano') {
+                // Preset Piano (Triangle wave + Fast Attack + Rapid Decay)
+                const osc1 = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc1.type = 'triangle';
+                osc1.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+                // Tambahkan harmonik tambahan di atasnya untuk memberikan kecerahan akustik piano
+                const osc2 = audioCtx.createOscillator();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(frequency * 2, audioCtx.currentTime);
+                const gainNode2 = audioCtx.createGain();
+                gainNode2.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+                // Filter frekuensi tinggi agar terdengar lebih lembut (warm)
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1200, audioCtx.currentTime);
+
+                // Attack, Decay, Sustain, Release (ADSR)
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.01); // Instant Attack
+                gainNode.gain.exponentialRampToValueAtTime(0.15, audioCtx.currentTime + 0.5); // Decay ke Sustain
+
+                osc1.connect(gainNode);
+                osc2.connect(gainNode2);
+                
+                gainNode.connect(filter);
+                gainNode2.connect(filter);
+                
+                filter.connect(mainVolumeNode);
+
+                osc1.start();
+                osc2.start();
+
+                oscs.push(osc1, osc2);
+                gains.push(gainNode, gainNode2);
+
+            } else if (currentPreset === 'organ') {
+                // Preset Organ Elektrik (Drawbar Hammond Organ: Sine wave berlapis)
+                const harmonicRatios = [1, 2, 3, 4];
+                const volumes = [0.4, 0.2, 0.15, 0.05];
+
+                harmonicRatios.forEach((ratio, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(frequency * ratio, audioCtx.currentTime);
+
+                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(volumes[index], audioCtx.currentTime + 0.03); // Fast Attack
+
+                    osc.connect(gainNode);
+                    gainNode.connect(mainVolumeNode);
+                    
+                    osc.start();
+                    oscs.push(osc);
+                    gains.push(gainNode);
+                });
+
+            } else if (currentPreset === 'synth') {
+                // Preset Synth Pad (Sawtooth + Slow Attack + Chorus Filter)
+                const osc1 = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                osc1.type = 'sawtooth';
+                osc1.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+                // LFO (Low Frequency Oscillator) untuk vibrato lembut
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.frequency.value = 5.5; // Vibrato Speed
+                lfoGain.gain.value = 4.0; // Vibrato Depth
+                
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc1.frequency);
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, audioCtx.currentTime);
+
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.25); // Slow Attack
+
+                osc1.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(mainVolumeNode);
+
+                lfo.start();
+                osc1.start();
+
+                oscs.push(osc1, lfo);
+                gains.push(gainNode);
+            }
+
+            activeNodes[noteName] = { oscs, gains };
+        }
+
+        function stopNoteAudio(noteName) {
+            const nodeGroup = activeNodes[noteName];
+            if (nodeGroup) {
+                const now = audioCtx.currentTime;
+                // Lepaskan suara dengan fase Release yang halus
+                nodeGroup.gains.forEach(gain => {
+                    const currentVal = gain.gain.value;
+                    gain.gain.cancelScheduledValues(now);
+                    gain.gain.setValueAtTime(currentVal, now);
+                    // Beri waktu 0.3 detik agar suara hilang tanpa klik tajam (pop)
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                });
+
+                // Hentikan osilator setelah fase release selesai
+                setTimeout(() => {
+                    nodeGroup.oscs.forEach(osc => {
+                        try { osc.stop(); } catch(e) {}
+                    });
+                }, 400);
+
+                delete activeNodes[noteName];
+            }
+        }
+
+        // --- SISTEM PEREKAM DAN REKAYASA PUTAR ULANG (RECORDER) ---
+        let isRecording = false;
+        let recordingStartTime = 0;
+        let recordedSequence = [];
+        let playbackTimeoutIds = [];
+
+        const recordBtn = document.getElementById('record-btn');
+        const playBtn = document.getElementById('play-btn');
+
+        recordBtn.addEventListener('click', () => {
+            if (!isRecording) {
+                // Mulai Rekam
+                isRecording = true;
+                recordedSequence = [];
+                recordingStartTime = Date.now();
+                recordBtn.classList.add('active');
+                recordBtn.innerHTML = `
+                    <span style="display:inline-block; width:10px; height:10px; background:#fff; border-radius:1px; animation: pulse 1s infinite"></span>
+                    BERHENTI
+                `;
+                playBtn.disabled = true;
+            } else {
+                // Berhenti Rekam
+                isRecording = false;
+                recordBtn.classList.remove('active');
+                recordBtn.innerHTML = `
+                    <span style="display:inline-block; width:10px; height:10px; background:#ff4b2b; border-radius:50%"></span>
+                    REKAM
+                `;
+                if (recordedSequence.length > 0) {
+                    playBtn.disabled = false;
+                }
+            }
+        });
+
+        playBtn.addEventListener('click', () => {
+            if (recordedSequence.length === 0) return;
+
+            // Bersihkan timeout pemutaran sebelumnya jika ada
+            playbackTimeoutIds.forEach(id => clearTimeout(id));
+            playbackTimeoutIds = [];
+
+            playBtn.classList.add('active-play');
+            
+            // Putar berurutan berdasarkan selisih waktu perekaman
+            recordedSequence.forEach(event => {
+                const startId = setTimeout(() => {
+                    const keyElement = document.querySelector(`[data-note="${event.note}"]`);
+                    if (keyElement) keyElement.classList.add('active');
+                    playNoteAudio(event.note, event.freq);
+                }, event.timeOffset);
+
+                const stopId = setTimeout(() => {
+                    const keyElement = document.querySelector(`[data-note="${event.note}"]`);
+                    if (keyElement) keyElement.classList.remove('active');
+                    stopNoteAudio(event.note);
+                }, event.timeOffset + event.duration);
+
+                playbackTimeoutIds.push(startId, stopId);
+            });
+
+            // Matikan visual tombol putar saat putaran selesai
+            const totalDuration = recordedSequence[recordedSequence.length - 1].timeOffset + recordedSequence[recordedSequence.length - 1].duration;
+            const endPlaybackId = setTimeout(() => {
+                playBtn.classList.remove('active-play');
+            }, totalDuration);
+            playbackTimeoutIds.push(endPlaybackId);
+        });
+
+        // Catat interaksi jika perekam sedang menyala
+        const activeRecs = {}; // Menyimpan sementara note start sebelum stop dicatat
+
+        function recordEventStart(note, freq) {
+            if (!isRecording) return;
+            activeRecs[note] = {
+                startTime: Date.now() - recordingStartTime,
+                freq: freq
+            };
+        }
+
+        function recordEventStop(note) {
+            if (!isRecording || !activeRecs[note]) return;
+            const stopTime = Date.now() - recordingStartTime;
+            const record = activeRecs[note];
+            
+            recordedSequence.push({
+                note: note,
+                freq: record.freq,
+                timeOffset: record.startTime,
+                duration: Math.max(50, stopTime - record.startTime) // Minimal durasi bunyi
+            });
+
+            delete activeRecs[note];
+        }
+
+        // --- VISUALISASI AUDIO CANVAS ---
+        const canvas = document.getElementById('wave-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawVisualizer() {
+            requestAnimationFrame(drawVisualizer);
+            if (!analyserNode) {
+                // Tampilan idle wave jika instrumen belum aktif/inisialisasi
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = 'rgba(79, 172, 254, 0.2)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height / 2);
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+                return;
+            }
+
+            const bufferLength = analyserNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyserNode.getByteTimeDomainData(dataArray);
+
+            ctx.fillStyle = 'rgba(13, 14, 21, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.lineWidth = 3;
+            // Buat warna gradasi neon yang indah pada visualizer
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, '#4facfe');
+            gradient.addColorStop(1, '#00f2fe');
+            ctx.strokeStyle = gradient;
+
+            ctx.beginPath();
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * canvas.height / 2;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                x += sliceWidth;
+            }
+
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+        }
+        drawVisualizer();
+
+        // --- RENDER KEYBOARD DAN EVENT HANDLERS ---
+        const keyboard = document.getElementById('piano-keyboard');
+
+        function renderKeyboard() {
+            keyboard.innerHTML = '';
+            NOTES.forEach((noteData, index) => {
+                const key = document.createElement('div');
+                key.classList.add('key', noteData.type === 'white' ? 'white-key' : 'black-key');
+                key.setAttribute('data-note', noteData.note);
+                key.setAttribute('data-freq', noteData.freq);
+                key.setAttribute('data-index', index);
+
+                // Sederhanakan tombol mapping untuk keyboard desktop
+                const labelChar = getDeviceKeyLabel(index);
+                
+                key.innerHTML = `
+                    <div class="key-note">${noteData.note}</div>
+                    <div class="key-binding">${labelChar}</div>
+                `;
+
+                keyboard.appendChild(key);
+            });
+        }
+
+        // Tampilkan key binding di layar agar ramah bagi pengguna komputer desktop
+        function getDeviceKeyLabel(index) {
+            // Cari tombol keyboard fisik dari KEY_MAP
+            for (let key in KEY_MAP) {
+                if (KEY_MAP[key] === index) {
+                    return key.toUpperCase();
+                }
+            }
+            return '';
+        }
+
+        renderKeyboard();
+
+        // --- POINTER EVENT DRAG/SLIDE HANDLING (Mendukung sentuhan penuh di layar HP & Seretan Mouse) ---
+        let isUserPressing = false;
+        let lastPlayedKey = null;
+
+        // Atur status seret
+        document.body.addEventListener('pointerdown', () => { isUserPressing = true; });
+        document.body.addEventListener('pointerup', () => { 
+            isUserPressing = false; 
+            if (lastPlayedKey) {
+                releaseKey(lastPlayedKey);
+                lastPlayedKey = null;
+            }
+        });
+
+        // Pasang event pada elemen keyboard
+        const keyElements = document.querySelectorAll('.key');
+        keyElements.forEach(key => {
+            // Ketika pointer pertama kali ditekan di atas salah satu ubin
+            key.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                isUserPressing = true;
+                pressKey(key);
+                lastPlayedKey = key;
+                key.releasePointerCapture(e.pointerId); // Izinkan pendeteksian pointerleave/enter secara bebas
+            });
+
+            // Ketika pointer diseret masuk ke dalam area ubin lain saat sedang menekan
+            key.addEventListener('pointerenter', (e) => {
+                if (isUserPressing && lastPlayedKey !== key) {
+                    if (lastPlayedKey) releaseKey(lastPlayedKey);
+                    pressKey(key);
+                    lastPlayedKey = key;
+                }
+            });
+
+            // Ketika keluar dari area ubin
+            key.addEventListener('pointerleave', (e) => {
+                if (isUserPressing && lastPlayedKey === key) {
+                    releaseKey(key);
+                    lastPlayedKey = null;
+                }
+            });
+        });
+
+        function pressKey(keyElement) {
+            if (!keyElement) return;
+            keyElement.classList.add('active');
+            const note = keyElement.getAttribute('data-note');
+            const freq = parseFloat(keyElement.getAttribute('data-freq'));
+            
+            playNoteAudio(note, freq);
+            recordEventStart(note, freq);
+        }
+
+        function releaseKey(keyElement) {
+            if (!keyElement) return;
+            keyElement.classList.remove('active');
+            const note = keyElement.getAttribute('data-note');
+            
+            stopNoteAudio(note);
+            recordEventStop(note);
+        }
+
+        // --- EVENT KEYBOARD KOMPUTER (DESKTOP PLAY) ---
+        const activeKeyboardKeys = {}; // Menyimpan tombol fisik mana yang sedang ditekan
+
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return; // Abaikan fungsi repeat dari sistem operasi
+            const keyLower = e.key.toLowerCase();
+            const noteIndex = KEY_MAP[keyLower];
+
+            if (noteIndex !== undefined) {
+                const keyData = NOTES[noteIndex];
+                const keyElement = document.querySelector(`[data-note="${keyData.note}"]`);
+                
+                if (keyElement && !activeKeyboardKeys[keyLower]) {
+                    activeKeyboardKeys[keyLower] = keyElement;
+                    pressKey(keyElement);
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const keyLower = e.key.toLowerCase();
+            const keyElement = activeKeyboardKeys[keyLower];
+
+            if (keyElement) {
+                releaseKey(keyElement);
+                delete activeKeyboardKeys[keyLower];
+            }
+        });
+
+        // --- EVENT PENANGANAN CONTROL PANEL ---
+
+        // Penggantian Preset Suara
+        document.getElementById('instrument-preset').addEventListener('change', (e) => {
+            currentPreset = e.target.value;
+            initAudio();
+        });
+
+        // Volume Master Control
+        document.getElementById('volume-control').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (mainVolumeNode) {
+                mainVolumeNode.gain.setValueAtTime(val, audioCtx.currentTime);
+            }
+        });
+
+        // Sembunyikan/Tampilkan Panduan Tombol Keyboard
+        const toggleGuide = document.getElementById('toggle-guide');
+        const viewport = document.getElementById('viewport');
+        
+        toggleGuide.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                viewport.classList.remove('hide-bindings');
+            } else {
+                viewport.classList.add('hide-bindings');
+            }
+        });
+
+        // Posisikan scrollbar otomatis ke bagian tengah oktaf default (C4) pada saat pertama dimuat
+        window.addEventListener('load', () => {
+            const middleC = document.querySelector('[data-note="C4"]');
+            if (middleC) {
+                const scrollPos = middleC.offsetLeft - (viewport.clientWidth / 2) + (middleC.clientWidth / 2);
+                viewport.scrollLeft = scrollPos;
+            }
+        });
+    </script>
+</body>
+</html>
